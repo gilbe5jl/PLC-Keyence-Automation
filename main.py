@@ -1,14 +1,5 @@
-'''
 
-██████╗░██╗░░██╗░█████╗░███████╗███╗░░██╗██╗██╗░░██╗  ██╗███╗░░░███╗░█████╗░░██████╗░██╗███╗░░██╗░██████╗░
-██╔══██╗██║░░██║██╔══██╗██╔════╝████╗░██║██║╚██╗██╔╝  ██║████╗░████║██╔══██╗██╔════╝░██║████╗░██║██╔════╝░
-██████╔╝███████║██║░░██║█████╗░░██╔██╗██║██║░╚███╔╝░  ██║██╔████╔██║███████║██║░░██╗░██║██╔██╗██║██║░░██╗░
-██╔═══╝░██╔══██║██║░░██║██╔══╝░░██║╚████║██║░██╔██╗░  ██║██║╚██╔╝██║██╔══██║██║░░╚██╗██║██║╚████║██║░░╚██╗
-██║░░░░░██║░░██║╚█████╔╝███████╗██║░╚███║██║██╔╝╚██╗  ██║██║░╚═╝░██║██║░░██║╚██████╔╝██║██║░╚███║╚██████╔╝
-╚═╝░░░░░╚═╝░░╚═╝░╚════╝░╚══════╝╚═╝░░╚══╝╚═╝╚═╝░░╚═╝  ╚═╝╚═╝░░░░░╚═╝╚═╝░░╚═╝░╚═════╝░╚═╝╚═╝░░╚══╝░╚═════╝░
-
-'''
-from builtins import WindowsError  # type: ignore
+from builtins import WindowsError  
 from pycomm3 import CommError
 from stringListBuilder import *
 from PLC_ops import PLC_ops as plc 
@@ -34,18 +25,12 @@ now = datetime.now().strftime("%I:%M:%S.%f")[:-3]
 logging.basicConfig(level=logging.INFO, filename = f"{today}.log",filemode = "w",
 format = f"{now}-%(levelname)s-%(message)s")
 logger = logging.getLogger(fn)
-#Create File handler
 handler = logging.FileHandler(f"{fn}-{today}.log")
-#Create logging format
 formatter = logging.Formatter(f"{now}-{fn}-%(levelname)s-%(message)s")
-#Add format to handler
 handler.setFormatter(formatter)
-#add the file handler to the logger
 logger.addHandler(handler)
 ### END LOGGING ###
 
-Phoenix = open('Phoenix.txt').read()
-print(Phoenix)
 currStage = 0
 partResults = ''
 mn1 = '14'
@@ -65,8 +50,6 @@ def PUN_toString(num):
         rtn += chr(num[i])
     return rtn    
 
-
-#Function to be looped twice for each machineNumber 
 def cycle(mn: str):
     PLC = plc(mn)
     knString = kString(mn)
@@ -86,11 +69,7 @@ def cycle(mn: str):
         try:
             PLC.flush_PLC()
             PLC_results = PLC.read_from_plc()
-            #resetRead = PLC.readRESET()
-            #RESET = resetRead[1]
-            #if(RESET == True):
             global currStage
-            #currStage = 0 
             PLC.writeResetTagFaultedTagsLOW()
             #END IF 
             if(currStage == 0):
@@ -114,11 +93,8 @@ def cycle(mn: str):
                 PartType = PLC_results['PartType'][1]
                 print(f'\nPart Type after LOAD {PartType}\n')
                 logger.info(f'\nPart Type after LOAD {PartType}\n')
-                #keyenceString = keyenceString(mn)
                 part_result = PLC_results['PartProgram'][1]
                 keyenceString = knString.setKeyenceString(part_result,PartType)
-                
-                #####
                 pun_str = PUN_toString(PLC_results['PUN'][1]) #int list to string function
                 date_info = [PLC_results['Month'][1],PLC_results['Day'][1],PLC_results['Hour'][1],PLC_results['Minute'][1],PLC_results['Second'][1]]
                 dateInfo_strList = [str(i) for i in date_info]
@@ -132,16 +108,10 @@ def cycle(mn: str):
                     data = keyenceOps(mn).LOAD_keyence(str(PLC_results['PartProgram'][1]), keyenceStr_date)
                     if data == True:
                         break
-                #PLC.flush_PLC()
                 PLC_results = PLC.read_from_plc()
-                #PLC_temp = PLC_results
-                #PLC.write_plc(PLC_results)
-                #print(PLC_results)
-                PLC.writeReadyHIGH()
                 currStage += 1
             #END IF, END STAGE 0
             #BEGIN ELIF, START STAGE 1 Program Start & End Sequence
-                
             elif(currStage == 1):
                 print(f'\n({mn}) Entering stage 1...\n')
                 resetChecker(mn)
@@ -149,8 +119,6 @@ def cycle(mn: str):
                     PLC.write_plc(PLC_results)
                     print('\r#\r',end='')
                     PLC_results = PLC.read_from_plc()
-                    #print(PLC_results)
-                    
                     if(PLC_results['StartProgram'][1] == True):
                         print(f'\n({mn})\nProgram Started \n')
                         break
@@ -165,9 +133,6 @@ def cycle(mn: str):
                             break
                     except TimeoutError as err:
                         print(f'({mn}) TriggerKeyence timeout error PhoenixFltCode : 2',err)
-                            # plc.write(
-                            # ('Program:HM1450_VS' + machine_num + '.VPC1.I.PhoenixFltCode', 2),
-                            # ('Program:HM1450_VS' + machine_num + '.VPC1.I.Faulted', True))
                         break
                 PLC.writeReadyLOW()
                 PLC.writeBusy(True)
@@ -180,15 +145,9 @@ def cycle(mn: str):
                     keyenceOps(mn).EXIT_keyence()
                     print(f'\nExit\n')
                               
-##                '''while(True):
-##                    if(keyenceOps(mn).monitor_KeyenceNR() == False):
-##                        print(f'\nkeyenceNRn\')
-##                        break'''
+
                 except TimeoutError as err:
                     print(f'({mn}) TriggerKeyence timeout error PhoenixFltCode : 3',err)
-                    # plc.write(
-                    # ('Program:HM1450_VS' + machine_num + '.VPC1.I.PhoenixFltCode', 3),
-                    # ('Program:HM1450_VS' + machine_num + '.VPC1.I.Faulted', True)
                 
                 keyenceResults = keyenceOps(mn).keyence_toPLC()
                 print('results sent: ', keyenceResults)
@@ -196,9 +155,6 @@ def cycle(mn: str):
                 PLC.writeDone(True)
                 scan_duration = 0
                 csv(mn, PLC_results, keyenceResults, keyenceStr_date, scan_duration).create()
-                
-                #global partResults
-                #partResults = resWriter(mn, partResults, PLC_results, keyenceStr_date, scan_duration ).gerrybudd()
                 keyenceComs(mn).message_Keyence('MW,#PhoenixControlContinue,1\r\n')
                 currStage += 1
                 
@@ -214,58 +170,29 @@ def cycle(mn: str):
                         currStage = 0
                         break
                     else:
-                        #print('waiting for end program')
+                       
                         time.sleep(.05)
 
-                    
-##                if(PLC_results['EndProgram'][1] == False and doneCheck[1] == False):
-##                    PLC.writeReadyHIGH()
-##                    currStage = 0
-        
+                  
 
-    ###################################
-    #File Cleanup( Name: def Dylan() )?
-    ###################################          
-    
-        except TimeoutError as err:#verify for windows 
+   
+        except TimeoutError as err:
             print("PLC communication TimeoutError")
             logger.warning(err)
-        except CommError as err: #verify for windows 
+        except CommError as err: 
             print("PLC communication error")
             logger.warning(err)
         
-#cycle('mn1')
 
-def getListOfFiles(dirName):
-    # create a list of file and sub directories 
-    # names in the given directory 
-    listOfFile = os.listdir(dirName)
-    allFiles = list()
-    # Iterate over all the entries
-    for entry in listOfFile:
-        # Create full path
-        fullPath = os.path.join(dirName, entry)
-        # If entry is a directory then get the list of files in this directory 
-        if os.path.isdir(fullPath):
-            allFiles = allFiles + getListOfFiles(fullPath)
-        else:
-            allFiles.append(fullPath)
-    return allFiles
+'''
 
-def logCleaner(dirName):
-    allFiles = getListOfFiles(dirName) #puts file names into list
-    for i in allFiles:
-        bDay = os.path.getmtime(i)
-        now = datetime.datetime.now()  # type: ignore
-        now = datetime.datetime.timestamp(now)*1000  # type: ignore
-        age = (float(bDay)-float(now))/(60*60*24) #time between file creation and current time
-        if age > 1209600:
-            try:
-                os.remove(i) #removes files older than two weeks
-            except WindowsError as e:
-                print('Attempt to remove old log files gave ', e)
-        else:
-            pass
+'''
+
+'''
+
+
+
+'''
 
 def thread_one(mn):
     PLCops = PLC_ops(mn)
