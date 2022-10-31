@@ -15,13 +15,13 @@ You may not use, distribute or modify this code.
 '''
 from builtins import WindowsError  
 from pycomm3 import CommError
-from stringListBuilder import *
+#########
 from PLC_ops import PLC_ops as plc 
 from keyenceOps import *
 from keyenceComs import *
 from keyenceString import keyenceString as kString
 from csvCreate import csvCreate as csv 
-from write_part_results import write_part_results as resWriter
+########
 import os
 from threading import Thread
 ##################### LOGGING ###########################
@@ -72,12 +72,11 @@ def cycle(mn: str):
         if(mn == '14'):
             pass
         else:
-            print("PLC connected\n")
-    except CommError as err: #WINDOWS 
-        print("PLC commError")
-        logger.warning(err)
+           ##########
+    except CommError as err: 
+    ######
     except TimeoutError as err:
-        print("PLC TimeoutError")
+       #######
         logger.warning(err)
     while(True):
         try:
@@ -87,13 +86,12 @@ def cycle(mn: str):
             PLC.writeResetTagFaultedTagsLOW()
             #END IF 
             if(currStage == 0):
-                print(f'\n({mn})START stage ZERO...\n')
                 resetChecker(mn)
-                PLC.writeBusyDoneLOW() #Busy,Done,Pass,Fail ->False
-                PLC.writeReadyHIGH() #writeReadyHigh
+                PLC.writeBusyDoneLOW() 
+                PLC.writeReadyHIGH() 
                 print(f"\n({mn}) Waiting for Load Program...\n")
                 while(PLC_results['LoadProgram'][1] == False):
-                    print('\r~\r',end='')
+                   ##########
                     PLC_results = PLC.read_from_plc()
                     if(PLC_results['LoadProgram'][1] == True):
                         print(f"\n({mn})Part Program:",PLC_results['PartProgram'][1])
@@ -116,7 +114,7 @@ def cycle(mn: str):
                     if(len(dateInfo_strList[i]) < 2 ):
                         dateInfo_strList[i] = '0' + dateInfo_strList[i]
                 keyenceStr_date = str(pun_str[10:22])+'_'+str(PLC_results['Year'][1])+'-'+str(dateInfo_strList[0]) + '-' + str(dateInfo_strList[1]) + '-' + str(dateInfo_strList[2]) + '-' + str(dateInfo_strList[3]) + '-' + str(dateInfo_strList[4]) + '_' + str(keyenceString)
-                print(f"\n({mn})LOADING: {keyenceStr_date}\n")
+            ###########
                 logger.info(f"\n({mn})LOADING: {keyenceStr_date}\n")
                 while(True):
                     data = keyenceOps(mn).LOAD_keyence(str(PLC_results['PartProgram'][1]), keyenceStr_date)
@@ -131,7 +129,7 @@ def cycle(mn: str):
                 resetChecker(mn)
                 while(PLC_results['StartProgram'][1] == False):
                     PLC.write_plc(PLC_results)
-                    print('\r#\r',end='')
+                    
                     PLC_results = PLC.read_from_plc()
                     if(PLC_results['StartProgram'][1] == True):
                         print(f'\n({mn})\nProgram Started \n')
@@ -146,65 +144,42 @@ def cycle(mn: str):
                         if(data == True):
                             break
                     except TimeoutError as err:
-                        print(f'({mn}) TriggerKeyence timeout error PhoenixFltCode : 2',err)
+                       ###############
                         break
-                PLC.writeReadyLOW()
+                        ######
                 PLC.writeBusy(True)
                 while(True):
                     if(PLC.monitor_endScan() == True):
-                        print(f'\nEnd Scan\n')
+                     #########
                         break
-                
                 try:
                     keyenceOps(mn).EXIT_keyence()
-                    print(f'\nExit\n')
-                              
-
-                except TimeoutError as err:
-                    print(f'({mn}) TriggerKeyence timeout error PhoenixFltCode : 3',err)
+                ##############
                 
-                keyenceResults = keyenceOps(mn).keyence_toPLC()
-                print('results sent: ', keyenceResults)
-                PLC.writeBusy(False)
-                PLC.writeDone(True)
-                scan_duration = 0
-                csv(mn, PLC_results, keyenceResults, keyenceStr_date, scan_duration).create()
-                keyenceComs(mn).message_Keyence('MW,#PhoenixControlContinue,1\r\n')
+              '''
+              '''
                 currStage += 1
                 
             elif(currStage == 2):
-                print('\nEntering Stage 2...\n')
-                resetChecker(mn)
+               '''
+               '''
                 while (True):
                     if(PLC_results['EndProgram'][1] == True):
                         PLC.writePassFail_LOW()
                         PLC.writeDone(False)
                         PLC.flush_PLC()
-                        print('flushing PLC')
+                   ###
                         currStage = 0
                         break
                     else:
-                       
                         time.sleep(.05)
-
-                  
-
-   
         except TimeoutError as err:
-            print("PLC communication TimeoutError")
             logger.warning(err)
         except CommError as err: 
-            print("PLC communication error")
             logger.warning(err)
         
 
 '''
-
-'''
-
-'''
-
-
 
 '''
 
@@ -238,3 +213,19 @@ def main():
 if __name__ ==  "__main__":
     while(True):
         main()
+        
+'''
+#########################################################
+# PLC---Keyence
+Python program for communicating with an Allen-Bradley PLCs using Ethernet/IP 
+and Keyence Vision System Controllers using Ethernet/IP.
+The development for this project was aimed at reading/writing data inside an 
+Allen-Bradley PLC and sending that data to a Keyence Vision System Controller.
+PLCs can be used to control heavy or dangerous equipment, this code is provided "as is" 
+and makes no guarantees on its reliability in a production environment. 
+This code is being provided as an example of my professional experience and should not be copied or distrubuted. 
+
+Copyright (C) 2022 Jalen Gilbert - All Rights Reserved
+You may not use, distribute or modify this code. 
+#####################################################
+'''
