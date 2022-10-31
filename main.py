@@ -50,14 +50,7 @@ partResults = ''
 mn1 = '14'
 mn2 = '15'
 
-def resetChecker(mn):
-    bool = plc(mn).checkReset()
-    if(bool == True):
-        plc(mn).flush_PLC()
-        plc(mn).writeResetTagFaultedTagsLOW()
-        cycle(mn)
-    else:
-        pass
+#######
 def PUN_toString(num):
     rtn = ''
     for i in range(len(num)):
@@ -87,14 +80,14 @@ def cycle(mn: str):
             #END IF 
             if(currStage == 0):
                 resetChecker(mn)
-                PLC.writeBusyDoneLOW() 
+               #####
                 PLC.writeReadyHIGH() 
-                print(f"\n({mn}) Waiting for Load Program...\n")
+            ######
                 while(PLC_results['LoadProgram'][1] == False):
                    ##########
                     PLC_results = PLC.read_from_plc()
                     if(PLC_results['LoadProgram'][1] == True):
-                        print(f"\n({mn})Part Program:",PLC_results['PartProgram'][1])
+                       #######
                         part_result = PLC_results['PartProgram'][1]
                         break
                     time.sleep(0.005)
@@ -102,12 +95,8 @@ def cycle(mn: str):
                 #END WHILE
                 PLC_results = PLC.read_from_plc()
                 PLC.writeReadyLOW()
-                PartType = PLC_results['PartType'][1]
-                print(f'\nPart Type after LOAD {PartType}\n')
-                logger.info(f'\nPart Type after LOAD {PartType}\n')
-                part_result = PLC_results['PartProgram'][1]
-                keyenceString = knString.setKeyenceString(part_result,PartType)
-                pun_str = PUN_toString(PLC_results['PUN'][1]) #int list to string function
+               ###########
+                  #######
                 date_info = [PLC_results['Month'][1],PLC_results['Day'][1],PLC_results['Hour'][1],PLC_results['Minute'][1],PLC_results['Second'][1]]
                 dateInfo_strList = [str(i) for i in date_info]
                 for i in range(0,len(dateInfo_strList)):
@@ -202,7 +191,6 @@ def thread_two(mn):
     t2.join()
 
 def main():
-    print(f"Starting threads for ({mn1}) & ({mn2})")
     t1 = Thread(target=thread_one,args=(mn1,))
     t2 = Thread(target=thread_two,args=(mn2,))
     t1.start()
